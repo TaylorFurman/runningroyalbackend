@@ -73,7 +73,7 @@ app.get('/run_data', async (req,res)=>{
     .then(run_history_data =>{
       const run_history = JSON.stringify(run_history_data)
       let fs = require("fs");
-      fs.writeFile("./run_history.json", run_history, function(error){
+      fs.writeFile("./public/run_history.json", run_history, function(error){
         if (error){
           console.log("Error writing json to front end");
         }else{

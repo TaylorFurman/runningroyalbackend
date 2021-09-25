@@ -31,7 +31,7 @@ var DATABASE_USER = process.env.DATABASE_USER;
 
 
 //DONT FORGET () after cors EVER AGAIN 
-var whitelist = ("https://keen-booth-986154.netlify.app" || "http://localhost:3000");
+var whitelist = ["https://keen-booth-986154.netlify.app", "http://localhost:3000"];
 app.use(cors({
   origin: function(origin, callback){
     // allow requests with no origin 

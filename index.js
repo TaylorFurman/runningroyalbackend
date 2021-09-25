@@ -13,6 +13,7 @@ const axios = require('axios');
 const {dirname} = require('path');
 const cors = require('cors');
 
+var whitelist = ["https://keen-booth-986154.netlify.app", "http://localhost:3000"];
 
 var DATABASE_ID = process.env.DATABASE_ID;
 var DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
@@ -90,7 +91,7 @@ app.get('/run_data', async (req,res)=>{
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: whitelist,
     methods: ["GET", "POST"]
   }
 });

@@ -32,27 +32,12 @@ var DATABASE_USER = process.env.DATABASE_USER;
 
 //DONT FORGET () after cors EVER AGAIN 
 var whitelist = ["https://keen-booth-986154.netlify.app", "http://localhost:3000"];
-app.use(cors({
-  origin: function(origin, callback){
-    // allow requests with no origin 
-    // (like mobile apps or curl requests)
-    if(!origin) return callback(null, true);
-    if(whitelist.indexOf(origin) === -1){
-      var msg = 'The CORS policy for this site does not ' +
-                'allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  }
-}));
+app.use(cors());
+
 
 app.use(express.urlencoded({extended:false}))
 
 app.use(express.json())
-
-// app.get('/', (req, res) => {
-//       res.sendFile(__dirname + '/index.html');
-// })
 
 
 app.get('./src/api/run_history.json',(req,res)=>{
@@ -84,15 +69,6 @@ app.get('/run_data', async (req,res)=>{
     await db.any(`SELECT * FROM run_history VALUES`)
     .then(run_history_data =>{
       res.json(run_history_data)
-
-      // let fs = require("fs");
-      // fs.writeFile("./public/run_history.json", run_history, function(error){
-      //   if (error){
-      //     console.log("Error writing json to front end");
-      //   }else{
-      //     console.log("saved running data to JSON file")
-      //   }
-      // })
   }
 )})
 

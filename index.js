@@ -68,23 +68,20 @@ app.post('/run_data', async (req,res)=>{
 )
 
 app.get('/run_data', async (req,res)=>{
-  res.send({stuff: true});
     await db.any(`SELECT * FROM run_history VALUES`)
     .then(run_history_data =>{
-      const run_history = JSON.stringify(run_history_data)
-      let fs = require("fs");
-      fs.writeFile("./public/run_history.json", run_history, function(error){
-        if (error){
-          console.log("Error writing json to front end");
-        }else{
-          console.log("saved running data to JSON file")
-        }
-      })
+      res.json(run_history_data)
+
+      // let fs = require("fs");
+      // fs.writeFile("./public/run_history.json", run_history, function(error){
+      //   if (error){
+      //     console.log("Error writing json to front end");
+      //   }else{
+      //     console.log("saved running data to JSON file")
+      //   }
+      // })
   }
 )})
-
-
-
 
 
 //socket io

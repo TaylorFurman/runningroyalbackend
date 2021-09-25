@@ -13,7 +13,7 @@ const axios = require('axios');
 const {dirname} = require('path');
 const cors = require('cors');
 
-var whitelist = ["https://keen-booth-986154.netlify.app", "http://localhost:3000"];
+
 
 var DATABASE_ID = process.env.DATABASE_ID;
 var DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
@@ -31,7 +31,20 @@ var DATABASE_USER = process.env.DATABASE_USER;
 
 
 //DONT FORGET () after cors EVER AGAIN 
-app.use(cors());
+var whitelist = ["https://keen-booth-986154.netlify.app", "http://localhost:3000"];
+app.use(cors({
+  origin: function(origin, callback){
+    // allow requests with no origin 
+    // (like mobile apps or curl requests)
+    if(!origin) return callback(null, true);
+    if(whitelist.indexOf(origin) === -1){
+      var msg = 'The CORS policy for this site does not ' +
+                'allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
+}));
 
 app.use(express.urlencoded({extended:false}))
 

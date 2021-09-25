@@ -101,7 +101,7 @@ app.get('/run_data', async (req,res)=>{
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: whitelist,
+    origin: "https://keen-booth-986154.netlify.app",
     methods: ["GET", "POST"]
   }
 });

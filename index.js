@@ -102,9 +102,7 @@ var DATA = {
 io.on('connection', (socket) => {
   console.log('Runner connected', socket.id);
   socket.on('disconnect', () => console.log('user disconnected'));
-  // socket.on('join', (room)=>{
-  //     console.log(`Socket ${socket.id} joining ${room}`);
-  // });
+
   socket.on('get_rooms', () => {
     socket.emit('rooms_data', DATA);
   });
@@ -127,9 +125,6 @@ io.on('connection', (socket) => {
   });
 
 });
-
-
-
 
 
 server.listen(port, () => {

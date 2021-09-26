@@ -57,12 +57,12 @@ if(backEndUrl=='http://localhost:3700'){
   var DATABASE_USER = process.env.DATABASE_USER_HEROKU;
 }
 
-  const dbsettings = process.env.DATABASE_URL || ({
+  const dbsettings = (process.env.DATABASE_URL || ({
     database: DATABASE_ID,
     password: DATABASE_PASSWORD,
     host: DATABASE_HOST,
     user: DATABASE_USER
-  })
+  }))
 
 let db = pgp(dbsettings);
 

@@ -120,7 +120,7 @@ app.use(express.json())
 
 
 //sends data from frontend to database after finishing run <----------Database Information Below---------------->
-app.post('/run_data', async (req,res)=>{
+app.post('/run_data', cors(), async (req,res)=>{
   res.send({stuff: true});
     await db.any(`INSERT INTO run_history VALUES(
       DEFAULT, 
@@ -142,7 +142,7 @@ app.post('/run_data', async (req,res)=>{
 
 
 //Allows the Front End to access ALL data in the database (Run_History Table) <----------Database Information Below---------------->
-app.get('/run_data', async (req,res)=>{
+app.get('/run_data', cors(), async (req,res)=>{
     await db.any(`SELECT * FROM run_history VALUES`)
     .then(run_history_data =>{
       res.json(run_history_data)

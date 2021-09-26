@@ -13,10 +13,23 @@ var morgan = require('morgan');
 var passport = require('passport')
 var GitHubStrategy = require('passport-github2').Strategy
 
+const { Client } = require('pg');
+
+const client = new Client({
+  connectionString: process.env.DATABASE_URL,
+});
+
 var GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 var GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 
-console.log('CONFIG', GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET)
+
+
+var backEndUrl = 'https://run-royale.herokuapp.com';
+if (process.env.PORT === undefined) {
+    backEndUrl ='http://localhost:3700';
+}
+
+console.log(backEndUrl)
 
 //Connect to database & save data to json file for front end to use for prop/state management
 const pgp = require('pg-promise')();
@@ -25,18 +38,35 @@ const {dirname} = require('path');
 const cors = require('cors');
 
 
-var DATABASE_ID = process.env.DATABASE_ID;
-var DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
-var DATABASE_HOST = process.env.DATABASE_HOST;
-var DATABASE_USER = process.env.DATABASE_USER;
+var DATABASE_ID = '';
+var DATABASE_PASSWORD = '';
+var DATABASE_HOST = '';
+var DATABASE_USER = '';
 
- const dbsettings = process.env.DATABASE_URL || ({
-   database: DATABASE_ID,
-   password: DATABASE_PASSWORD,
-   host: DATABASE_HOST,
-   user: DATABASE_USER
- })
- const db = pgp(dbsettings);
+
+if(backEndUrl=='http://localhost:3700'){
+  var DATABASE_ID = process.env.DATABASE_ID;
+  var DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
+  var DATABASE_HOST = process.env.DATABASE_HOST;
+  var DATABASE_USER = process.env.DATABASE_USER;
+  
+}else{
+  var DATABASE_ID = process.env.DATABASE_ID_HEROKU;
+  var DATABASE_PASSWORD = process.env.DATABASE_PASSWORD_HEROKU;
+  var DATABASE_HOST = process.env.DATABASE_HOST_HEROKU;
+  var DATABASE_USER = process.env.DATABASE_USER_HEROKU;
+}
+
+  const dbsettings = process.env.DATABASE_URL || ({
+    database: DATABASE_ID,
+    password: DATABASE_PASSWORD,
+    host: DATABASE_HOST,
+    user: DATABASE_USER
+  })
+
+let db = pgp(dbsettings);
+
+
 
 //  passport.serializeUser(function(user, done) {
 //   done(null, user);
@@ -57,7 +87,7 @@ var DATABASE_USER = process.env.DATABASE_USER;
 // }));
 
 //DONT FORGET () after cors EVER AGAIN 
-var whitelist = ["https://keen-booth-986154.netlify.app", "http://localhost:3000"];
+var whitelist = ("https://keen-booth-986154.netlify.app" || "http://localhost:3000");
 app.use(cors());
 
 // app.use(morgan('dev'));

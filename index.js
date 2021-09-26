@@ -6,34 +6,84 @@ const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
+var session = require('express-session');
+var morgan = require('morgan');
+
+
+var passport = require('passport')
+var GitHubStrategy = require('passport-github2').Strategy
+
+const { Client } = require('pg');
+
+const client = new Client({
+  connectionString: process.env.DATABASE_URL,
+});
+
+var GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+var GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+
+
+
+var backEndUrl = 'https://run-royale.herokuapp.com';
+if (process.env.PORT === undefined) {
+    backEndUrl ='http://localhost:3700';
+}
+
+console.log(backEndUrl)
 
 //Connect to database & save data to json file for front end to use for prop/state management
-const pgp = require('pg-promise')();
+var pgp = require('pg-promise')();
 const axios = require('axios');
 const {dirname} = require('path');
 const cors = require('cors');
 
 
-var DATABASE_ID = process.env.DATABASE_ID;
-var DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
-var DATABASE_HOST = process.env.DATABASE_HOST;
-var DATABASE_USER = process.env.DATABASE_USER;
-
- const dbsettings = process.env.DATABASE_URL || ({
-   database: DATABASE_ID,
-   password: DATABASE_PASSWORD,
-   host: DATABASE_HOST,
-   user: DATABASE_USER
- })
- const db = pgp(dbsettings);
+var DATABASE_ID = '';
+var DATABASE_PASSWORD = '';
+var DATABASE_HOST = '';
+var DATABASE_USER = '';
 
 
+  var DATABASE_ID = process.env.DATABASE_ID;
+  var DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
+  var DATABASE_HOST = process.env.DATABASE_HOST;
+  var DATABASE_USER = process.env.DATABASE_USER;
+  
+  const dbsettings = process.env.DATABASE_URL || ({
+    database: DATABASE_ID,
+    password: DATABASE_PASSWORD,
+    host: DATABASE_HOST,
+    user: DATABASE_USER
+  })
+
+let db = pgp(process.env.DATABASE_URL || dbsettings);
+
+
+
+//  passport.serializeUser(function(user, done) {
+//   done(null, user);
+// });
+// passport.deserializeUser(function(obj, done) {
+//   done(null, obj);
+// });
+
+// passport.use(new GitHubStrategy({
+//   clientID: GITHUB_CLIENT_ID,
+//   clientSecret: GITHUB_CLIENT_SECRET,
+//   callbackURL: "http://127.0.0.1:3000/auth/github/callback"
+// },
+// (accessToken, refreshToken, profile, cb) => {
+//   console.log(chalk.blue(JSON.stringify(profile)));
+//   user = { ...profile };
+//   return cb(null, profile);
+// }));
 
 //DONT FORGET () after cors EVER AGAIN 
+var whitelist = ("https://keen-booth-986154.netlify.app" || "http://localhost:3000");
 app.use(cors());
 
+// app.use(morgan('dev'));
 app.use(express.urlencoded({extended:false}))
-
 app.use(express.json())
 
 app.get('/', (req, res) => {
@@ -47,11 +97,46 @@ app.get('./src/api/run_history.json',(req,res)=>{
 })
 
 //sends data from frontend to database after finishing run
-app.post('/run_data', async (req,res)=>{
+// app.post('/run_data', async (req,res)=>{
+// app.use(session({
+//   secret: process.env.SECRET_KEY || 'dev',
+//   resave: true,
+//   saveUninitialized: false,
+//   cookie: {maxAge: 60000}
+// }));
+
+
+// app.use(function (request, response, next) {
+//   if (request.session.user) {
+//     next();
+//   } else if (request.path == '/login') {
+//     next();
+//   } else {
+//     response.redirect('/login');
+//   }
+// });
+
+// app.get("/auth/github", passport.authenticate("github"));
+// app.get("/auth/github/callback",
+//     passport.authenticate("github"),
+//     (req, res) => {
+//         res.redirect("/profile");
+//     });
+
+// app.get("/auth/logout", (req, res) => {
+//   console.log("logging out!");
+//   user = {};
+//   res.redirect("/");
+// });
+
+
+
+
+//sends data from frontend to database after finishing run <----------Database Information Below---------------->
+app.post('/run_data', cors(), async (req,res)=>{
   res.send({stuff: true});
     await db.any(`INSERT INTO run_history VALUES(
       DEFAULT, 
-      '${req.body.runId}',
       '${req.body.runnerId}',
       '${req.body.run_date}', 
       '${req.body.distance}', 
@@ -66,31 +151,26 @@ app.post('/run_data', async (req,res)=>{
   }
 )
 
-app.get('/run_data', async (req,res)=>{
-  res.send({stuff: true});
+
+//Allows the Front End to access ALL data in the database (Run_History Table) <----------Database Information Below---------------->
+app.get('/run_data', cors(), async (req,res,next)=>{
     await db.any(`SELECT * FROM run_history VALUES`)
     .then(run_history_data =>{
-      const run_history = JSON.stringify(run_history_data)
-      let fs = require("fs");
-      fs.writeFile("./public/run_history.json", run_history, function(error){
-        if (error){
-          console.log("error");
-        }else{
-          console.log("saved running data to JSON file")
-        }
-      })
-  }
-)})
+      res.json(run_history_data)
+      
+    }
+  )
+    .catch((e)=>{
+      next(e);
+    })
+});
 
 
-
-
-
-//socket io
+//socket io <--------------Socket Information Below------------------>
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
@@ -108,9 +188,6 @@ var DATA = {
 io.on('connection', (socket) => {
   console.log('Runner connected', socket.id);
   socket.on('disconnect', () => console.log('user disconnected'));
-  // socket.on('join', (room)=>{
-  //     console.log(`Socket ${socket.id} joining ${room}`);
-  // });
   socket.on('get_rooms', () => {
     socket.emit('rooms_data', DATA);
   });
@@ -123,6 +200,12 @@ io.on('connection', (socket) => {
   socket.on('addUserID', (msg) => {
     DATA.rooms[msg.roomID].runnersJoined.push(msg.runnerID);
     console.log('added userID on backend to runnersJoined', JSON.stringify(DATA));
+    io.emit('rooms_data', DATA);
+  });
+
+  socket.on('addRunnerID', (msg) => {
+    DATA.rooms[msg.roomID].allRunners.push(msg.runnerID);
+    console.log('added userID on backend to allRunners', JSON.stringify(DATA));
     io.emit('rooms_data', DATA);
   });
 

@@ -141,12 +141,17 @@ app.post('/run_data', cors(), async (req,res)=>{
 
 
 //Allows the Front End to access ALL data in the database (Run_History Table) <----------Database Information Below---------------->
-app.get('/run_data', cors(), async (req,res)=>{
+app.get('/run_data', cors(), async (req,res,next)=>{
     await db.any(`SELECT * FROM run_history VALUES`)
     .then(run_history_data =>{
       res.json(run_history_data)
-  }
-)})
+      
+    }
+  )
+    .catch((e)=>{
+      next(e);
+    })
+})
 
 
 //socket io <--------------Socket Information Below------------------>

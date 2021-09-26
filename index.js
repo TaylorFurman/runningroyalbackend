@@ -132,7 +132,7 @@ app.get('/run_data', async (req,res)=>{
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: whitelist,
     methods: ["GET", "POST"]
   }
 });

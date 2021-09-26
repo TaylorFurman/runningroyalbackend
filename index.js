@@ -32,7 +32,7 @@ if (process.env.PORT === undefined) {
 console.log(backEndUrl)
 
 //Connect to database & save data to json file for front end to use for prop/state management
-const pgp = require('pg-promise')();
+var pgp = require('pg-promise')();
 const axios = require('axios');
 const {dirname} = require('path');
 const cors = require('cors');
@@ -44,27 +44,19 @@ var DATABASE_HOST = '';
 var DATABASE_USER = '';
 
 
-if(backEndUrl=='http://localhost:3700'){
   var DATABASE_ID = process.env.DATABASE_ID;
   var DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
   var DATABASE_HOST = process.env.DATABASE_HOST;
   var DATABASE_USER = process.env.DATABASE_USER;
   
-}else{
-  var DATABASE_ID = process.env.DATABASE_ID_HEROKU;
-  var DATABASE_PASSWORD = process.env.DATABASE_PASSWORD_HEROKU;
-  var DATABASE_HOST = process.env.DATABASE_HOST_HEROKU;
-  var DATABASE_USER = process.env.DATABASE_USER_HEROKU;
-}
-
-  const dbsettings = (process.env.DATABASE_URL || ({
+  const dbsettings = process.env.DATABASE_URL || ({
     database: DATABASE_ID,
     password: DATABASE_PASSWORD,
     host: DATABASE_HOST,
     user: DATABASE_USER
-  }))
+  })
 
-let db = pgp(dbsettings);
+let db = pgp(process.env.DATABASE_URL || dbsettings);
 
 
 

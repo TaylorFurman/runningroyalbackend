@@ -124,7 +124,6 @@ app.post('/run_data', cors(), async (req,res)=>{
   res.send({stuff: true});
     await db.any(`INSERT INTO run_history VALUES(
       DEFAULT, 
-      '${req.body.runId}',
       '${req.body.runnerId}',
       '${req.body.run_date}', 
       '${req.body.distance}', 
@@ -161,7 +160,7 @@ const io = new Server(server, {
   
 var DATA = {
   rooms: [
-    {name: "Room 1", runnersJoined: []}
+    {name: "Room 1", runnersJoined: [], allRunners: []}
   ]
 };
 
@@ -183,6 +182,12 @@ io.on('connection', (socket) => {
   socket.on('addUserID', (msg) => {
     DATA.rooms[msg.roomID].runnersJoined.push(msg.runnerID);
     console.log('added userID on backend', JSON.stringify(DATA));
+    io.emit('rooms_data', DATA);
+  });
+
+  socket.on('addRunnerID', (msg) => {
+    DATA.rooms[msg.roomID].allRunners.push(msg.runnerID);
+    console.log('added userID on backend to allRunners', JSON.stringify(DATA));
     io.emit('rooms_data', DATA);
   });
 

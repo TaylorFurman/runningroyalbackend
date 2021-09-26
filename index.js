@@ -1,6 +1,6 @@
 require('dotenv').config()
 // const hostname = '127.0.0.1';
-var port = (process.env.PORT || 3700);
+const port = 3700;
 
 const express = require('express');
 const app = express();
@@ -13,7 +13,6 @@ const axios = require('axios');
 const {dirname} = require('path');
 const cors = require('cors');
 
-var whitelist = ["https://keen-booth-986154.netlify.app", "http://localhost:3000"];
 
 var DATABASE_ID = process.env.DATABASE_ID;
 var DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
@@ -37,9 +36,9 @@ app.use(express.urlencoded({extended:false}))
 
 app.use(express.json())
 
-// app.get('/', (req, res) => {
-//       res.sendFile(__dirname + '/index.html');
-// })
+app.get('/', (req, res) => {
+      res.sendFile(__dirname + '/index.html');
+})
 
 
 app.get('./src/api/run_history.json',(req,res)=>{
@@ -68,41 +67,50 @@ app.post('/run_data', async (req,res)=>{
 )
 
 app.get('/run_data', async (req,res)=>{
+  res.send({stuff: true});
     await db.any(`SELECT * FROM run_history VALUES`)
     .then(run_history_data =>{
-      res.json(run_history_data)
-
-      // let fs = require("fs");
-      // fs.writeFile("./public/run_history.json", run_history, function(error){
-      //   if (error){
-      //     console.log("Error writing json to front end");
-      //   }else{
-      //     console.log("saved running data to JSON file")
-      //   }
-      // })
+      const run_history = JSON.stringify(run_history_data)
+      let fs = require("fs");
+      fs.writeFile("./public/run_history.json", run_history, function(error){
+        if (error){
+          console.log("error");
+        }else{
+          console.log("saved running data to JSON file")
+        }
+      })
   }
 )})
+
+
+
 
 
 //socket io
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: whitelist,
+    origin: "http://localhost:3000",
     methods: ["GET", "POST"]
   }
 });
   
+//initial data, userID(allRunners) and userID(runnersJoined - for one run, clears out after user clicks stop run)
 var DATA = {
   rooms: [
-    {name: "Room 1", runnersJoined: []}
+    { name: "Room 1", 
+      runnersJoined: [], 
+      allRunners: []
+    }
   ]
 };
 
 io.on('connection', (socket) => {
   console.log('Runner connected', socket.id);
   socket.on('disconnect', () => console.log('user disconnected'));
-
+  // socket.on('join', (room)=>{
+  //     console.log(`Socket ${socket.id} joining ${room}`);
+  // });
   socket.on('get_rooms', () => {
     socket.emit('rooms_data', DATA);
   });
@@ -114,7 +122,13 @@ io.on('connection', (socket) => {
 
   socket.on('addUserID', (msg) => {
     DATA.rooms[msg.roomID].runnersJoined.push(msg.runnerID);
-    console.log('added userID on backend', JSON.stringify(DATA));
+    console.log('added userID on backend to runnersJoined', JSON.stringify(DATA));
+    io.emit('rooms_data', DATA);
+  });
+
+  socket.on('addRunnerID', (msg) => {
+    DATA.rooms[msg.roomID].allRunners.push(msg.runnerID);
+    console.log('added userID on backend to allRunners', JSON.stringify(DATA));
     io.emit('rooms_data', DATA);
   });
 
@@ -125,7 +139,6 @@ io.on('connection', (socket) => {
   });
 
 });
-
 
 server.listen(port, () => {
     console.log(`Server running at ${port}`);

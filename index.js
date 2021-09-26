@@ -38,37 +38,37 @@ var DATABASE_USER = process.env.DATABASE_USER;
  })
  const db = pgp(dbsettings);
 
- passport.serializeUser(function(user, done) {
-  done(null, user);
-});
-passport.deserializeUser(function(obj, done) {
-  done(null, obj);
-});
+//  passport.serializeUser(function(user, done) {
+//   done(null, user);
+// });
+// passport.deserializeUser(function(obj, done) {
+//   done(null, obj);
+// });
 
-passport.use(new GitHubStrategy({
-  clientID: GITHUB_CLIENT_ID,
-  clientSecret: GITHUB_CLIENT_SECRET,
-  callbackURL: "http://127.0.0.1:3000/auth/github/callback"
-},
-(accessToken, refreshToken, profile, cb) => {
-  console.log(chalk.blue(JSON.stringify(profile)));
-  user = { ...profile };
-  return cb(null, profile);
-}));
+// passport.use(new GitHubStrategy({
+//   clientID: GITHUB_CLIENT_ID,
+//   clientSecret: GITHUB_CLIENT_SECRET,
+//   callbackURL: "http://127.0.0.1:3000/auth/github/callback"
+// },
+// (accessToken, refreshToken, profile, cb) => {
+//   console.log(chalk.blue(JSON.stringify(profile)));
+//   user = { ...profile };
+//   return cb(null, profile);
+// }));
 
 //DONT FORGET () after cors EVER AGAIN 
 var whitelist = ["https://keen-booth-986154.netlify.app", "http://localhost:3000"];
 app.use(cors());
 
-app.use(morgan('dev'));
+// app.use(morgan('dev'));
 app.use(express.urlencoded({extended:false}))
 app.use(express.json())
-app.use(session({
-  secret: process.env.SECRET_KEY || 'dev',
-  resave: true,
-  saveUninitialized: false,
-  cookie: {maxAge: 60000}
-}));
+// app.use(session({
+//   secret: process.env.SECRET_KEY || 'dev',
+//   resave: true,
+//   saveUninitialized: false,
+//   cookie: {maxAge: 60000}
+// }));
 
 
 // app.use(function (request, response, next) {
@@ -81,18 +81,18 @@ app.use(session({
 //   }
 // });
 
-app.get("/auth/github", passport.authenticate("github"));
-app.get("/auth/github/callback",
-    passport.authenticate("github"),
-    (req, res) => {
-        res.redirect("/profile");
-    });
+// app.get("/auth/github", passport.authenticate("github"));
+// app.get("/auth/github/callback",
+//     passport.authenticate("github"),
+//     (req, res) => {
+//         res.redirect("/profile");
+//     });
 
-app.get("/auth/logout", (req, res) => {
-  console.log("logging out!");
-  user = {};
-  res.redirect("/");
-});
+// app.get("/auth/logout", (req, res) => {
+//   console.log("logging out!");
+//   user = {};
+//   res.redirect("/");
+// });
 
 
 
@@ -132,7 +132,7 @@ app.get('/run_data', async (req,res)=>{
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: whitelist,
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });

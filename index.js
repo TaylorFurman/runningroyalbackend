@@ -6,18 +6,18 @@ const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
-var session = require('express-session');
-var morgan = require('morgan');
+// var session = require('express-session');
+// var morgan = require('morgan');
 
 
-var passport = require('passport')
-var GitHubStrategy = require('passport-github2').Strategy
+// var passport = require('passport')
+// var GitHubStrategy = require('passport-github2').Strategy
 
-const { Client } = require('pg');
+// const { Client } = require('pg');
 
-const client = new Client({
-  connectionString: process.env.DATABASE_URL,
-});
+// const client = new Client({
+//   connectionString: process.env.DATABASE_URL,
+// });
 
 var GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 var GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
@@ -200,12 +200,6 @@ io.on('connection', (socket) => {
   socket.on('addUserID', (msg) => {
     DATA.rooms[msg.roomID].runnersJoined.push(msg.runnerID);
     console.log('added userID on backend to runnersJoined', JSON.stringify(DATA));
-    io.emit('rooms_data', DATA);
-  });
-
-  socket.on('addRunnerID', (msg) => {
-    DATA.rooms[msg.roomID].allRunners.push(msg.runnerID);
-    console.log('added userID on backend to allRunners', JSON.stringify(DATA));
     io.emit('rooms_data', DATA);
   });
 

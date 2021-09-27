@@ -1,23 +1,23 @@
 require('dotenv').config()
 // const hostname = '127.0.0.1';
-var port = (process.env.PORT || 3700);
+const port = 3700;
 
 const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
-var session = require('express-session');
-var morgan = require('morgan');
+// var session = require('express-session');
+// var morgan = require('morgan');
 
 
-var passport = require('passport')
-var GitHubStrategy = require('passport-github2').Strategy
+// var passport = require('passport')
+// var GitHubStrategy = require('passport-github2').Strategy
 
-const { Client } = require('pg');
+// const { Client } = require('pg');
 
-const client = new Client({
-  connectionString: process.env.DATABASE_URL,
-});
+// const client = new Client({
+//   connectionString: process.env.DATABASE_URL,
+// });
 
 var GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 var GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
@@ -85,6 +85,19 @@ app.use(cors());
 // app.use(morgan('dev'));
 app.use(express.urlencoded({extended:false}))
 app.use(express.json())
+
+app.get('/', (req, res) => {
+      res.sendFile(__dirname + '/index.html');
+})
+
+
+app.get('./src/api/run_history.json',(req,res)=>{
+   console.log(res.send)
+    
+})
+
+//sends data from frontend to database after finishing run
+// app.post('/run_data', async (req,res)=>{
 // app.use(session({
 //   secret: process.env.SECRET_KEY || 'dev',
 //   resave: true,
@@ -139,7 +152,6 @@ app.post('/run_data', cors(), async (req,res)=>{
 )
 
 
-
 //Allows the Front End to access ALL data in the database (Run_History Table) <----------Database Information Below---------------->
 app.get('/run_data', cors(), async (req,res,next)=>{
     await db.any(`SELECT * FROM run_history VALUES`)
@@ -151,7 +163,7 @@ app.get('/run_data', cors(), async (req,res,next)=>{
     .catch((e)=>{
       next(e);
     })
-})
+});
 
 
 //socket io <--------------Socket Information Below------------------>
@@ -163,18 +175,19 @@ const io = new Server(server, {
   }
 });
   
+//initial data, userID(allRunners) and userID(runnersJoined - for one run, clears out after user clicks stop run)
 var DATA = {
   rooms: [
-    {name: "Room 1", runnersJoined: [], allRunners: []}
+    { name: "Room 1", 
+      runnersJoined: [], 
+      allRunners: []
+    }
   ]
 };
 
 io.on('connection', (socket) => {
   console.log('Runner connected', socket.id);
   socket.on('disconnect', () => console.log('user disconnected'));
-  // socket.on('join', (room)=>{
-  //     console.log(`Socket ${socket.id} joining ${room}`);
-  // });
   socket.on('get_rooms', () => {
     socket.emit('rooms_data', DATA);
   });
@@ -186,7 +199,7 @@ io.on('connection', (socket) => {
 
   socket.on('addUserID', (msg) => {
     DATA.rooms[msg.roomID].runnersJoined.push(msg.runnerID);
-    console.log('added userID on backend', JSON.stringify(DATA));
+    console.log('added userID on backend to runnersJoined', JSON.stringify(DATA));
     io.emit('rooms_data', DATA);
   });
 
@@ -203,7 +216,6 @@ io.on('connection', (socket) => {
   });
 
 });
-
 
 server.listen(port, () => {
     console.log(`Server running at ${port}`);
